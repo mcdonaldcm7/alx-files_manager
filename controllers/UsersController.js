@@ -6,10 +6,12 @@ export default function postNew(req, res) {
 
   if (email === undefined) {
     res.status(400).json({ error: 'Missing email' });
+    return;
   }
 
   if (password === undefined) {
     res.status(400).json({ error: 'Missing password' });
+    return;
   }
 
   const collection = dbClient.client.db(dbClient.database).collection('users');
@@ -39,7 +41,7 @@ export default function postNew(req, res) {
       collection.insertOne({ email, password: hashedPassword },
         (error, result) => {
           if (error) {
-            console.error('Error inserting document: ', error);
+            res.status(400).json({ error: 'Error inserting document' });
           } else {
             res.status(201).json({ id: result.insertedId, email });
           }
