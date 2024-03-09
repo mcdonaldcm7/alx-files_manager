@@ -25,11 +25,11 @@ class DBClient {
   }
 
   async nbUsers() {
-    return await this.client.db(this.database).collection('users').countDocuments();
+    return this.client.db(this.database).collection('users').countDocuments();
   }
 
   async nbFiles() {
-    return await this.client.db(this.database).collection('files').countDocuments();
+    return this.client.db(this.database).collection('files').countDocuments();
   }
 }
 
