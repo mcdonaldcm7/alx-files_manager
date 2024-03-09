@@ -11,12 +11,12 @@ export function getStats(req, res) {
       dbClient.nbFiles()
         .then((filesResult) => {
           res.status(200).json({ users: usersResult, files: filesResult });
-	})
-        .catch((error) => {
+        })
+        .catch(() => {
           res.status(500).json({ error: 'Error getting files count' });
-	});
+        });
     })
-    .catch((error) => {
+    .catch(() => {
       res.status(500).json({ error: 'Error getting users count' });
     });
 }
