@@ -5,11 +5,11 @@ export default function postNew(req, res) {
   const { email, password } = req.body;
 
   if (email === undefined) {
-    res.status(400).send('Missing email');
+    res.status(400).json({ 'Missing email' });
   }
 
   if (password === undefined) {
-    res.status(400).send('Missing password');
+    res.status(400).json({ 'Missing password' });
   }
 
   const collection = dbClient.client.db(dbClient.database).collection('users');
@@ -23,12 +23,12 @@ export default function postNew(req, res) {
 
   collection.findOne({ email }, (error, user) => {
     if (error) {
-      res.status(500).send('Internal server error');
+      res.status(500).error({ error: 'Internal server error' });
       return;
     }
 
     if (user) {
-      res.status(400).send('Already exist');
+      res.status(400).json({ error: 'Already exist' });
     } else {
       const sha1Hash = crypto.createHash('sha1');
 
