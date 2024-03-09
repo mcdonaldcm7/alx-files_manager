@@ -5,11 +5,11 @@ export default function postNew(req, res) {
   const { email, password } = req.body;
 
   if (email === undefined) {
-    res.status(400).json({ 'Missing email' });
+    res.status(400).json({ error: 'Missing email' });
   }
 
   if (password === undefined) {
-    res.status(400).json({ 'Missing password' });
+    res.status(400).json({ error: 'Missing password' });
   }
 
   const collection = dbClient.client.db(dbClient.database).collection('users');
