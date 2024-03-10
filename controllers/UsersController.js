@@ -58,13 +58,17 @@ export function getMe(req, res) {
   redisClient.get(`auth_${token}`)
     .then((userId) => {
       const collection = dbClient.client.db(dbClient.database).collection('users');
+      if (!userId) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
       collection.findOne({ _id: ObjectId(userId) })
         .then((user) => {
           if (!user) {
             res.status(401).json({ error: 'Unauthorized' });
             return;
           }
-          res.json({ email: user.email, _id: user._id });
+          res.status(200).json({ email: user.email, _id: user._id });
         })
         .catch(() => {
           res.status(401).json({ error: 'Unauthorized' });
