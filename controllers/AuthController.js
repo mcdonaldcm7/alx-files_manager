@@ -28,6 +28,10 @@ export function getConnect(req, res) {
 
   collection.find({ email }).toArray()
     .then((result) => {
+      if (!result) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
       for (const user of result) {
         if (user.password === hashedPassword) {
           const key = `auth_${uuidv4()}`;
@@ -50,6 +54,10 @@ export function getDisconnect(req, res) {
   redisClient.get(`auth_${token}`)
     .then((userId) => {
       const collection = dbClient.client.db(dbClient.database).collection('users');
+      if (!userId) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
       collection.findOne({ _id: ObjectId(userId) })
         .then((result) => {
           if (!result) {
