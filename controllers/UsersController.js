@@ -1,7 +1,9 @@
 import crypto from 'crypto';
+import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
-export default function postNew(req, res) {
+export function postNew(req, res) {
   const { email, password } = req.body;
 
   if (email === undefined) {
@@ -25,7 +27,7 @@ export default function postNew(req, res) {
 
   collection.findOne({ email }, (error, user) => {
     if (error) {
-      res.status(500).error({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error' });
       return;
     }
 
@@ -48,4 +50,24 @@ export default function postNew(req, res) {
         });
     }
   });
+}
+
+export function getMe(req, res) {
+  const token = req.headers['x-token'];
+
+  redisClient.get(`auth_${token}`)
+    .then((userId) => {
+      const collection = dbClient.client.db(dbClient.database).collection('users');
+      collection.findOne({ _id: ObjectId(userId) })
+        .then((user) => {
+          if (!user) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+          }
+          res.json({ email: user.email, _id: user._id });
+        })
+        .catch((error) => {
+          res.status(500).json({ error });
+        });
+    });
 }
