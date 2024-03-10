@@ -61,8 +61,8 @@ export function getDisconnect(req, res) {
               res.status(204).end();
             });
         })
-        .catch((error) => {
-          res.status(500).json({ error });
+        .catch(() => {
+          res.status(401).json({ error: 'Unauthorized' });
         });
     });
 }
