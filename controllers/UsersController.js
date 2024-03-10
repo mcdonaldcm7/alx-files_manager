@@ -66,8 +66,8 @@ export function getMe(req, res) {
           }
           res.json({ email: user.email, _id: user._id });
         })
-        .catch((error) => {
-          res.status(500).json({ error });
+        .catch(() => {
+          res.status(401).json({ error: 'Unauthorized' });
         });
     });
 }
