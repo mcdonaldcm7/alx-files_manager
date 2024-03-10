@@ -28,7 +28,7 @@ export function getConnect(req, res) {
 
   collection.find({ email }).toArray()
     .then((result) => {
-      if (!result) {
+      if (result === null) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
@@ -54,13 +54,13 @@ export function getDisconnect(req, res) {
   redisClient.get(`auth_${token}`)
     .then((userId) => {
       const collection = dbClient.client.db(dbClient.database).collection('users');
-      if (!userId) {
+      if (userId === null) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
       collection.findOne({ _id: ObjectId(userId) })
         .then((result) => {
-          if (!result) {
+          if (result === null) {
             res.status(401).json({ error: 'Unauthorized' });
             return;
           }
