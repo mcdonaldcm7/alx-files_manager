@@ -58,7 +58,7 @@ export default async function postUpload(req, res) {
   };
 
   if (type === 'file' || type === 'image') {
-    file.data = Buffer.from(data, 'base64').toString('utf-8');
+    file.data = data;
   }
 
   if (type === 'folder') {
@@ -87,11 +87,12 @@ export default async function postUpload(req, res) {
   await fs.writeFile(`${filePath}/${fileName}`, content, (err) => (err === null));
 
   const filesCollection = dbClient.client.db(dbClient.database).collection('files');
+  const localPath = `${filePath}/${fileName}`;
   const fileInsertResult = await filesCollection.insertOne({
-    userId, name, type, isPublic, parentId, localPath: `${filePath}/${fileName}`,
+    userId, name, type, isPublic, parentId, localPath,
   });
 
   return res.status(201).json({
-    id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId,
+    id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId, localPath,
   });
 }
