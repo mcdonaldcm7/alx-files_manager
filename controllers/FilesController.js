@@ -54,7 +54,7 @@ export default async function postUpload(req, res) {
   isPublic = !(isPublic === undefined || !isPublic);
 
   const file = {
-    userId, name, type, isPublic, parentId,
+    userId: ObjectId(userId), name, type, isPublic, parentId,
   };
 
   if (type === 'file' || type === 'image') {
@@ -89,7 +89,7 @@ export default async function postUpload(req, res) {
   const filesCollection = dbClient.client.db(dbClient.database).collection('files');
   const localPath = `${filePath}/${fileName}`;
   const fileInsertResult = await filesCollection.insertOne({
-    userId, name, type, isPublic, parentId, localPath,
+    userId: ObjectId(userId), name, type, isPublic, parentId, localPath,
   });
 
   return res.status(201).json({
