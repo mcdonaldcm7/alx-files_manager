@@ -8,6 +8,10 @@ import dbClient from '../utils/db';
 export default async function postUpload(req, res) {
   const token = req.headers['x-token'];
 
+  if (token === undefined) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   const userId = await redisClient.get(`auth_${token}`);
   if (userId === null) {
     return res.status(401).json({ error: 'Unauthorized' });
