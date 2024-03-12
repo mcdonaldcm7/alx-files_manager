@@ -60,18 +60,18 @@ export function getMe(req, res) {
       const collection = dbClient.client.db(dbClient.database).collection('users');
       if (userId === null) {
         res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
-      collection.findOne({ _id: ObjectId(userId) })
-        .then((user) => {
-          if (user === null) {
+      } else {
+        collection.findOne({ _id: ObjectId(userId) })
+          .then((user) => {
+            if (user === null) {
+              res.status(401).json({ error: 'Unauthorized' });
+            } else {
+              res.json({ id: user._id, email: user.email });
+            }
+          })
+          .catch(() => {
             res.status(401).json({ error: 'Unauthorized' });
-            return;
-          }
-          res.status(200).json({ id: user._id, email: user.email });
-        })
-        .catch(() => {
-          res.status(401).json({ error: 'Unauthorized' });
-        });
+          });
+      }
     });
 }
