@@ -58,7 +58,7 @@ export default async function postUpload(req, res) {
   };
 
   if (type === 'file' || type === 'image') {
-    file.data = data;
+    file.data = Buffer.from(data, 'base64').toString('utf-8');
   }
 
   if (type === 'folder') {
