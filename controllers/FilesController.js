@@ -35,7 +35,7 @@ export default async function postUpload(req, res) {
   }
 
   if (parentId !== undefined) {
-    const parentFolder = await collection.findOne({ _id: ObjectId(parentId) });
+    const parentFolder = await collection.findOne({ parentId: ObjectId(parentId) });
 
     if (parentFolder === null) {
       return res.status(400).json({ error: 'Parent not found' });
