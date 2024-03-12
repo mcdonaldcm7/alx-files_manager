@@ -39,8 +39,7 @@ export default async function postUpload(req, res) {
   }
 
   if (parentId !== undefined) {
-    const parentFolder = await collection.findOne({ parentId: ObjectId(parentId) });
-
+    const parentFolder = await collection.findOne({ _id: ObjectId(parentId) });
     if (parentFolder === null) {
       return res.status(400).json({ error: 'Parent not found' });
     }
@@ -62,7 +61,7 @@ export default async function postUpload(req, res) {
   }
 
   if (type === 'folder') {
-    const result = collection.insertOne(file);
+    const result = await collection.insertOne(file);
     return res.status(201).json({
       id: result.insertedId, userId, name, type, isPublic, parentId,
     });
@@ -93,6 +92,6 @@ export default async function postUpload(req, res) {
   });
 
   return res.status(201).json({
-    id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId, localPath,
+    id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId,
   });
 }
