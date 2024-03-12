@@ -4,7 +4,7 @@ import fs from 'fs';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
-export default function postUpload(req, res) {
+export function postUpload(req, res) {
   const token = req.headers['x-token'];
 
   redisClient.get(`auth_${token}`)
@@ -31,8 +31,21 @@ export default function postUpload(req, res) {
             }
           }
 
+          /**
+           * if (parentId !== undefined) {
+           * collection.findOne({ _id: ObjectId(parentId) })
+           *  .then((result) => {
+           *     if (result === null) {
+           *       res.status(400).json({ error: 'Parent not found' });
+           *     } else if (result.type !== 'folder') {
+           *       res.status(400).json({ error: 'Parent is not a folder' });
+           *     }
+           *   });
+           * }
+           */
+
           if (parentId !== undefined) {
-            collection.findOne({ _id: ObjectId(parentId) })
+            collection.findOne({ parentId: ObjectId(parentId) })
               .then((result) => {
                 if (result === null) {
                   res.status(400).json({ error: 'Parent not found' });
@@ -101,5 +114,62 @@ export default function postUpload(req, res) {
         .catch(() => {
           res.status(401).json({ error: 'Unauthorized' });
         });
+    });
+}
+
+export function getShow(req, res) {
+  const { token } = req.headers;
+  const { id } = req.params;
+
+  redisClient.get(`auth_${token}`)
+    .then((userId) => {
+      const userCollection = dbClient.client.db(dbClient.database).collection('users');
+      userCollection.findOne({ _id: ObjectId(userId) })
+        .then((user) => {
+          if (user === null) {
+            res.status(401).json({ error: 'Unauthorized' });
+          } else {
+            const filesCollection = dbClient.client.db(dbClient.database).collection('files');
+            filesCollection.findOne({ _id: ObjectId(id), userId })
+              .then((file) => {
+                if (file === null) {
+                  res.status(404).json({ error: 'Not found' });
+                } else {
+                  console.log('File returned is: ');
+                  console.log(file);
+                  // Return the file document
+                }
+              });
+          }
+        });
+    });
+}
+
+export function getIndex(req, res) {
+  const token = req.headers['x-token'];
+
+  redisClient.get(`auth_${token}`)
+    .then((userId) => {
+      if (userId === null) {
+        res.status(401).json({ error: 'Unauthorized' });
+      } else {
+        const userCollection = dbClient.client.db(dbClient.database).collection('users');
+        userCollection.findOne({ _id: ObjectId(userId) })
+          .then((user) => {
+            if (user === null) {
+              res.status(401).json({ error: 'Unauthorized' });
+            } else {
+              let { parentId } = req.params;
+              const { page } = req.params;
+
+              parentId = (parentId === undefined) ? 0 : parentId;
+              const fileCollection = dbClient.client.db(dbClient.database).collection('files');
+              fileCollection.find({ parentId: ObjectId(parentId) }).toArray()
+                .then((files) => {
+                  console.log(files, page);
+                });
+            }
+          });
+      }
     });
 }
