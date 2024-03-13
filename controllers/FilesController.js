@@ -120,7 +120,7 @@ export async function getShow(req, res) {
   if (file === null) {
     return res.status(404).json({ error: 'Not found' });
   }
-  return res.status(201).json(file);
+  return res.json(file);
 }
 
 export async function getIndex(req, res) {
@@ -134,8 +134,6 @@ export async function getIndex(req, res) {
   if (userId === null) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
-  console.log('req.query is ', req.query);
 
   const page = req.query.page || 0;
   const pageSize = 20;
