@@ -62,7 +62,7 @@ export default async function postUpload(req, res) {
 
   if (type === 'folder') {
     const result = await collection.insertOne(file);
-    return res.status(201).json(result);
+    return res.status(201).json(result.ops[0]);
     // return res.status(201).json({
     //  id: result.insertedId, userId, name, type, isPublic, parentId,
     // });
