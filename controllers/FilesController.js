@@ -55,7 +55,7 @@ export default async function postUpload(req, res) {
   isPublic = !(isPublic === undefined || !isPublic);
 
   const file = {
-    userId: ObjectId(userId), name, type, parentId,
+    userId: ObjectId(userId), name, type, isPublic, parentId,
   };
 
   if (type === 'file' || type === 'image') {
