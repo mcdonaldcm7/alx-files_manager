@@ -120,7 +120,7 @@ export async function getShow(req, res) {
   if (file === null) {
     return res.status(404).json({ error: 'Not found' });
   }
-  return res.json(file);
+  return res.status(200).json(file);
 }
 
 export async function getIndex(req, res) {
