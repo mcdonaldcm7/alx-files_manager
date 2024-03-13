@@ -118,7 +118,7 @@ export async function getShow(req, res) {
   const filesCollection = await dbClient.client.db(dbClient.database).collection('files');
   const file = await filesCollection.findOne({ _id: ObjectId(fileId), userId: ObjectId(userId) });
   if (file === null) {
-    return res.status(404).json({ error: 'Unauthorized' });
+    return res.status(404).json({ error: 'Not found' });
   }
   return res.json(file);
 }
