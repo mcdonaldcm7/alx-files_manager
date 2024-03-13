@@ -62,9 +62,10 @@ export default async function postUpload(req, res) {
 
   if (type === 'folder') {
     const result = await collection.insertOne(file);
-    return res.status(201).json({
-      id: result.insertedId, userId, name, type, isPublic, parentId,
-    });
+    return res.status(201).json(result);
+    // return res.status(201).json({
+    //  id: result.insertedId, userId, name, type, isPublic, parentId,
+    // });
   }
 
   const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
