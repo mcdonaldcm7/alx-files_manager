@@ -38,8 +38,10 @@ export default async function postUpload(req, res) {
     return res.status(400).json({ error: 'Missing data' });
   }
 
+  const filesCollection = await dbClient.client.db(dbClient.database).collection('files');
+
   if (parentId !== undefined) {
-    const parentFolder = await collection.findOne({ _id: ObjectId(parentId) });
+    const parentFolder = await filesCollection.findOne({ _id: ObjectId(parentId) });
     if (parentFolder === null) {
       return res.status(400).json({ error: 'Parent not found' });
     }
@@ -49,11 +51,11 @@ export default async function postUpload(req, res) {
     }
   }
 
-  parentId = (parentId === undefined) ? 0 : parentId;
+  parentId = (parentId === undefined) ? 0 : ObjectId(parentId);
   isPublic = !(isPublic === undefined || !isPublic);
 
   const file = {
-    userId: ObjectId(userId), name, type, isPublic, parentId,
+    userId: ObjectId(userId), name, type, parentId,
   };
 
   if (type === 'file' || type === 'image') {
@@ -61,11 +63,10 @@ export default async function postUpload(req, res) {
   }
 
   if (type === 'folder') {
-    const result = await collection.insertOne(file);
-    return res.status(201).json(result.ops[0]);
-    // return res.status(201).json({
-    //  id: result.insertedId, userId, name, type, isPublic, parentId,
-    // });
+    const result = await filesCollection.insertOne(file);
+    return res.status(201).json({
+      id: result.insertedId, userId, name, type, isPublic, parentId,
+    });
   }
 
   const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
@@ -86,11 +87,16 @@ export default async function postUpload(req, res) {
 
   await fs.writeFile(`${filePath}/${fileName}`, content, (err) => (err === null));
 
-  const filesCollection = dbClient.client.db(dbClient.database).collection('files');
   const localPath = `${filePath}/${fileName}`;
-  const fileInsertResult = await filesCollection.insertOne({
-    userId: ObjectId(userId), name, type, isPublic, parentId, localPath,
-  });
+  const fFile = {
+    userId: ObjectId(userId), name, type, isPublic, parentId: ObjectId(parentId),
+  };
+
+  if (type === 'file' || type === 'image') {
+    fFile.localPath = localPath;
+  }
+
+  const fileInsertResult = await filesCollection.insertOne(fFile);
 
   return res.status(201).json({
     id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId,
