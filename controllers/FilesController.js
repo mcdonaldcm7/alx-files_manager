@@ -5,7 +5,7 @@ import fs from 'fs';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
-export default async function postUpload(req, res) {
+export async function postUpload(req, res) {
   const token = req.headers['x-token'];
 
   if (token === undefined) {
@@ -55,7 +55,7 @@ export default async function postUpload(req, res) {
   isPublic = !(isPublic === undefined || !isPublic);
 
   const file = {
-    userId: ObjectId(userId), name, type, isPublic, parentId,
+    userId: ObjectId(userId), name, type, parentId,
   };
 
   if (type === 'file' || type === 'image') {
@@ -101,4 +101,57 @@ export default async function postUpload(req, res) {
   return res.status(201).json({
     id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId,
   });
+}
+
+export async function getShow(req, res) {
+  const fileId = req.params.id;
+  const token = req.headers['x-token'];
+
+  if (token === undefined) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const userId = await redisClient.get(`auth_${token}`);
+  if (userId === null) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const filesCollection = await dbClient.client.db(dbClient.database).collection('files');
+  const file = await filesCollection.findOne({ _id: ObjectId(fileId), userId: ObjectId(userId) });
+  if (file === null) {
+    return res.status(404).json({ error: 'Unauthorized' });
+  }
+  return res.json(file);
+}
+
+export async function getIndex(req, res) {
+  const token = req.headers['x-token'];
+
+  if (token === undefined) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userId = await redisClient.get(`auth_${token}`);
+  if (userId === null) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  console.log('req.query is ', req.query);
+
+  const page = req.query.page || 0;
+  const pageSize = 20;
+  const skip = page * pageSize;
+  const query = { userId: ObjectId(userId) };
+  if (req.query.parentId !== undefined) {
+    query.parentId = ObjectId(req.query.parentId);
+  }
+
+  const pipeline = [
+    { $match: query },
+    { $skip: skip },
+    { $limit: pageSize },
+  ];
+
+  const filesCollection = dbClient.client.db(dbClient.database).collection('files');
+  const userFiles = await filesCollection.aggregate(pipeline).toArray();
+  return res.json(userFiles);
 }
