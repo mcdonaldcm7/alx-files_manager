@@ -151,5 +151,18 @@ export async function getIndex(req, res) {
 
   const filesCollection = dbClient.client.db(dbClient.database).collection('files');
   const userFiles = await filesCollection.aggregate(pipeline).toArray();
-  return res.json(userFiles);
+
+  const finalForm = [];
+  for (const files of userFiles) {
+    finalForm.push({
+      id: String(files._id),
+      userId: String(files.userId),
+      name: files.name,
+      type: files.type,
+      isPublic: files.isPublic,
+      parentId: (typeof files.parentId === 'object') ? String(files.parentId) : files.parentId,
+    });
+  }
+
+  return res.json(finalForm);
 }
