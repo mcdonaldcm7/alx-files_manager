@@ -17,8 +17,8 @@ export default async function postUpload(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const collection = dbClient.client.db(dbClient.database).collection('users');
-  const user = await collection.findOne({ _id: ObjectId(userId) });
+  const userCollection = dbClient.client.db(dbClient.database).collection('users');
+  const user = await userCollection.findOne({ _id: ObjectId(userId) });
   if (user === null) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -51,7 +51,7 @@ export default async function postUpload(req, res) {
     }
   }
 
-  parentId = (parentId === undefined) ? 0 : ObjectId(parentId);
+  parentId = (parentId === undefined) ? 0 : parentId;
   isPublic = !(isPublic === undefined || !isPublic);
 
   const file = {
