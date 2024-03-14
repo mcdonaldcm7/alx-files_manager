@@ -191,7 +191,7 @@ export async function putPublish(req, res) {
     _id: ObjectId(fileId), userId: ObjectId(userId),
   }, { $set: { isPublic: true } });
 
-  if (updateResult.modifiedCount !== 1) {
+  if (updateResult.modifiedCount !== 1 && updateResult.matchedCount !== 1) {
     return res.status(404).json({ error: 'Not found' });
   }
 
@@ -199,7 +199,7 @@ export async function putPublish(req, res) {
     _id: ObjectId(fileId), userId: ObjectId(userId),
   });
   return res.status(200).json({
-    id: String(file.id),
+    id: String(fileId),
     userId: String(file.userId),
     name: file.name,
     type: file.type,
@@ -231,7 +231,7 @@ export async function putUnpublish(req, res) {
     _id: ObjectId(fileId), userId: ObjectId(userId),
   }, { $set: { isPublic: false } });
 
-  if (updateResult.modifiedCount !== 1) {
+  if (updateResult.modifiedCount !== 1 && updateResult.matchedCount !== 1) {
     return res.status(404).json({ error: 'Not found' });
   }
 
@@ -240,7 +240,7 @@ export async function putUnpublish(req, res) {
   });
 
   return res.status(200).json({
-    id: String(file.id),
+    id: String(fileId),
     userId: String(file.userId),
     name: file.name,
     type: file.type,
@@ -270,7 +270,8 @@ export async function getFile(req, res) {
     }
 
     const userId = await redisClient.get(`auth_${token}`);
-    if (userId === null || file.userId !== ObjectId(userId)) {
+
+    if (userId === null || !(file.userId.equals(ObjectId(userId)))) {
       return res.status(404).json({ error: 'Not found' });
     }
   }
@@ -281,6 +282,7 @@ export async function getFile(req, res) {
 
   const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
   const access = promisify(fs.access);
+
   try {
     await access(filePath, fs.constants.F_OK);
   } catch (err) {
@@ -291,5 +293,5 @@ export async function getFile(req, res) {
 
   const mimeType = mime.lookup(file.name) || 'application/octet-stream';
   res.setHeader('Content-Type', mimeType);
-  return res.sendFile(`${filePath}/${file.name}`);
+  return res.sendFile(`${file.localPath}`);
 }
