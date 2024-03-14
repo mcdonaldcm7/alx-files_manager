@@ -13,8 +13,13 @@ export function getConnect(req, res) {
   const base64Encoded = authHeader.split(' ')[1];
 
   const base64Decoded = Buffer.from(base64Encoded, 'base64').toString('utf-8');
+
   const email = base64Decoded.split(':')[0];
   const password = base64Decoded.split(':')[1];
+
+  if (password === undefined) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   const sha1Hash = crypto.createHash('sha1');
 
@@ -23,7 +28,7 @@ export function getConnect(req, res) {
   const hashedPassword = sha1Hash.digest('hex');
   const collection = dbClient.client.db(dbClient.database).collection('users');
 
-  collection.findOne({ email, password: hashedPassword })
+  return collection.findOne({ email, password: hashedPassword })
     .then((result) => {
       if (result === null) {
         res.status(401).json({ error: 'Unauthorized' });
