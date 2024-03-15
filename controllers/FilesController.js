@@ -280,14 +280,14 @@ export async function getFile(req, res) {
     return res.status(400).json({ error: 'A folder doesn\'t have content' });
   }
 
-  const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
+  // const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
   const access = promisify(fs.access);
 
   try {
-    await access(filePath, fs.constants.F_OK);
+    await access(file.localPath, fs.constants.F_OK);
   } catch (err) {
     if (err) {
-      return res.status(400).json({ error: 'Not found' });
+      return res.status(404).json({ error: 'Not found' });
     }
   }
 
