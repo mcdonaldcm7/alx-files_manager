@@ -5,6 +5,7 @@ import fs from 'fs';
 import mime from 'mime-types';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import queue from '../worker';
 
 export async function postUpload(req, res) {
   const token = req.headers['x-token'];
@@ -72,7 +73,7 @@ export async function postUpload(req, res) {
 
   const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
 
-  const content = Buffer.from(data, 'base64').toString('utf-8');
+  const content = Buffer.from(data, 'base64');
   const fileName = uuidv4();
   const access = promisify(fs.access);
 
@@ -98,6 +99,10 @@ export async function postUpload(req, res) {
   }
 
   const fileInsertResult = await filesCollection.insertOne(fFile);
+
+  if (type === 'image') {
+    queue.add({ userId, fileId: fileInsertResult.insertedId });
+  }
 
   return res.status(201).json({
     id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId,
@@ -198,6 +203,7 @@ export async function putPublish(req, res) {
   const file = await fileCollection.findOne({
     _id: ObjectId(fileId), userId: ObjectId(userId),
   });
+
   return res.status(200).json({
     id: String(fileId),
     userId: String(file.userId),
@@ -251,10 +257,7 @@ export async function putUnpublish(req, res) {
 
 export async function getFile(req, res) {
   const fileId = req.params.id;
-
-  if (fileId === undefined) {
-    return res.status(404).json({ error: 'Not found' });
-  }
+  const { size } = req.query;
 
   const filesCollection = dbClient.client.db(dbClient.database).collection('files');
   const file = await filesCollection.findOne({ _id: ObjectId(fileId) });
@@ -284,6 +287,9 @@ export async function getFile(req, res) {
 
   try {
     await access(file.localPath, fs.constants.F_OK);
+    if (size !== undefined) {
+      await access(`${file.localPath}_${size}`, fs.sonstants.F_OK);
+    }
   } catch (err) {
     if (err) {
       return res.status(404).json({ error: 'Not found' });
@@ -292,5 +298,8 @@ export async function getFile(req, res) {
 
   const mimeType = mime.lookup(file.name) || 'application/octet-stream';
   res.setHeader('Content-Type', mimeType);
+  if (size !== undefined) {
+    return res.sendFile(`${file.localPath}_${size}`);
+  }
   return res.sendFile(`${file.localPath}`);
 }
