@@ -36,7 +36,7 @@ describe('GET /connect, GET /disconnect, GET /users/me', function() {
 
     chai.request('http://localhost:5000')
       .get('/connect')
-      .set('Authorization', invalidCredentials)
+      .set('Authorization', `Basic ${invalidCredentials}`)
       .end(function(err, res) {
         expect(err).to.be.null;
         expect(res).to.have.status(401);
@@ -46,7 +46,7 @@ describe('GET /connect, GET /disconnect, GET /users/me', function() {
     invalidCredentials = btoa('dummy_mail_invalid@email.com:dUmMyPaSsWoRd123');
     chai.request('http://localhost:5000')
       .get('/connect')
-      .set('Authorization', invalidCredentials)
+      .set('Authorization', `Basic ${invalidCredentials}`)
       .end(function(err, res) {
         expect(err).to.be.null;
         expect(res).to.have.status(401);
@@ -56,7 +56,7 @@ describe('GET /connect, GET /disconnect, GET /users/me', function() {
     invalidCredentials = btoa('dummy_mail@email.com:WrongPassword123');
     chai.request('http://localhost:5000')
       .get('/connect')
-      .set('Authorization', invalidCredentials)
+      .set('Authorization', `Basic ${invalidCredentials}`)
       .end(function(err, res) {
         expect(err).to.be.null;
         expect(res).to.have.status(401);
