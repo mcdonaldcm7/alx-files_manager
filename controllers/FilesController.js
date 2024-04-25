@@ -53,7 +53,7 @@ export async function postUpload(req, res) {
     }
   }
 
-  parentId = (parentId === undefined) ? 0 : parentId;
+  parentId = (parentId === undefined) ? 0 : ObjectId(parentId);
   isPublic = !(isPublic === undefined || !isPublic);
 
   const file = {
@@ -83,15 +83,17 @@ export async function postUpload(req, res) {
     try {
       await fs.promises.mkdir(filePath, { recursive: true });
     } catch (error) {
-      return res.status(500).json({ error });
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
   await fs.writeFile(`${filePath}/${fileName}`, content, (err) => (err === null));
 
   const localPath = `${filePath}/${fileName}`;
+
   const fFile = {
-    userId: ObjectId(userId), name, type, isPublic, parentId: ObjectId(parentId),
+    userId: ObjectId(userId), name, type, isPublic, parentId,
   };
 
   if (type === 'file' || type === 'image') {
@@ -105,7 +107,7 @@ export async function postUpload(req, res) {
   }
 
   return res.status(201).json({
-    id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId,
+    id: fileInsertResult.insertedId, userId, name, type, isPublic, parentId: file.parentId,
   });
 }
 
